@@ -1,0 +1,2 @@
+RoletaApp/ffmpeg.dll filter=lfs diff=lfs merge=lfs -text
+RoletaApp/*.exe filter=lfs diff=lfs merge=lfs -text
