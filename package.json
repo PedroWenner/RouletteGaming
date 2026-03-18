@@ -1,7 +1,6 @@
 {
   "name": "roleta",
   "version": "1.0.0",
-  "type": "module",
   "description": "",
   "main": "dist/main/main.js",
   "scripts": {
@@ -33,7 +32,7 @@
   },
   "build": {
     "appId": "com.lucky.spin",
-    "productName": "Lucky Spin Roulette",
+    "productName": "IEAD Roleta",
     "directories": {
       "output": "dist/installers"
     },
