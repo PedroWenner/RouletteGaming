@@ -56,7 +56,4 @@ npm run build
 Para gerar o instalador Windows (.exe):
 ```bash
 npm run package
-```
-
----
-*Desenvolvido com Antigravity Multi-Agent Architecture.*
+``
