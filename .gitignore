@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-main/
+dist-renderer/
+
+# IDE / Env
+.vscode/
+.vs/
+.env
+.DS_Store
+*.log
+*.rar
+
+# Agents/Brain (Local development only)
+.gemini/
+.agents/
+brain/
