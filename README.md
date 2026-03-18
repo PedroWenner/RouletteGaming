@@ -56,4 +56,14 @@ npm run build
 Para gerar o instalador Windows (.exe):
 ```bash
 npm run package
-``
+```
+
+## 🆕 Últimas Atualizações
+
+- **Sistema de Temas**: Suporte a Temas Claro (otimizado para Datashow) e Escuro.
+- **Layout Widescreen**: Novo posicionamento horizontal da roleta e resultados para evitar rolagem.
+- **Gestão de Salas**: Edição dinâmica de nomes de salas e ranking automatizado de presença e ofertas.
+- **Nome Oficial**: Aplicativo renomeado para **IEAD Roleta**.
+- **Testes Unitários**: Integração do **Vitest** para garantir a confiabilidade do motor da roleta (`src/core`).
+- **Build de Distribuição**: O instalador oficial (`.exe`) é gerado agora em `dist/installers/`.
+- **Áudio e Visual**: Adicionado efeito sonoro de Jackpot e animação premium de slot machine.
