@@ -58,5 +58,9 @@ Para gerar o instalador Windows (.exe):
 npm run package
 ```
 
----
-*Desenvolvido com Antigravity Multi-Agent Architecture.*
+## 🆕 Últimas Atualizações
+
+- **Nome Oficial**: Aplicativo renomeado para **IEAD Roleta**.
+- **Testes Unitários**: Integração do **Vitest** para garantir a confiabilidade do motor da roleta (`src/core`).
+- **Build de Distribuição**: O instalador oficial (`.exe`) é gerado agora em `dist/installers/`.
+- **Áudio e Visual**: Adicionado efeito sonoro de Jackpot e animação premium de slot machine.
