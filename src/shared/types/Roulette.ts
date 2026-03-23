@@ -12,4 +12,5 @@ export interface IRouletteEngine {
   getHistory(): RouletteResult[];
   reset(): void;
   getConfig(): RouletteConfig;
+  getRemainingCount(): number;
 }

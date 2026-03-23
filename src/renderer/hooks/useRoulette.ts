@@ -7,12 +7,14 @@ export const useRoulette = () => {
   const [history, setHistory] = useState<RouletteResult[]>([]);
   const [lastResult, setLastResult] = useState<RouletteResult | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [remainingCount, setRemainingCount] = useState<number>(0);
 
   const initEngine = useCallback((config: RouletteConfig) => {
     const newEngine = new RouletteEngine(config);
     setEngine(newEngine);
     setHistory([]);
     setLastResult(null);
+    setRemainingCount(newEngine.getRemainingCount());
   }, []);
 
   const spin = useCallback(async () => {
@@ -26,6 +28,7 @@ export const useRoulette = () => {
         const result = engine.spin();
         setLastResult(result);
         setHistory(engine.getHistory().slice(-20).reverse());
+        setRemainingCount(engine.getRemainingCount());
         setIsSpinning(false);
         resolve(result);
       }, 3000); // 3 seconds matching UX guidelines
@@ -47,6 +50,7 @@ export const useRoulette = () => {
     reset,
     history,
     lastResult,
-    isSpinning
+    isSpinning,
+    remainingCount
   };
 };
