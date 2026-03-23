@@ -80,6 +80,10 @@ export class RouletteEngine implements IRouletteEngine {
     }
   }
 
+  public getRemainingCount(): number {
+    return this.availableNumbers.length;
+  }
+
   public getConfig(): RouletteConfig {
     return {
       min: this.min,
