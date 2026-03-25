@@ -1,5 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRoulette } from '../hooks/useRoulette';
+import { Room } from '../../shared/types/Room';
+import RoomManagementModal from '../components/RoomManagementModal';
+import PodiumRanking from '../components/PodiumRanking';
 import RangeSelector from '../components/RangeSelector';
 import RouletteWheel from '../components/RouletteWheel';
 import Button from '../components/Button';
@@ -19,99 +22,232 @@ const RoulettePage: React.FC = () => {
     remainingCount
   } = useRoulette();
 
+  const [view, setView] = useState<'home' | 'roulette' | 'ranking'>('home');
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Load rooms on mount
+  useEffect(() => {
+    const savedRooms = localStorage.getItem('roleta_rooms');
+    const savedActiveId = localStorage.getItem('roleta_active_room_id');
+    if (savedRooms) {
+      setRooms(JSON.parse(savedRooms));
+    }
+    if (savedActiveId) {
+      setActiveRoomId(savedActiveId);
+    }
+  }, []);
+
+  const handleUpdateRooms = (updatedRooms: Room[]) => {
+    setRooms(updatedRooms);
+    localStorage.setItem('roleta_rooms', JSON.stringify(updatedRooms));
+  };
+
+  const handleSelectRoom = (id: string | null) => {
+    setActiveRoomId(id);
+    if (id) {
+      localStorage.setItem('roleta_active_room_id', id);
+    } else {
+      localStorage.removeItem('roleta_active_room_id');
+    }
+  };
+
+  const activeRoom = rooms.find(r => r.id === activeRoomId);
+
   useEffect(() => {
     // Keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && engine && !isSpinning) {
+      if (e.key === 'Enter' && engine && !isSpinning && view === 'roulette') {
         spin();
       }
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && view === 'roulette') {
         reset();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [engine, isSpinning, spin, reset]);
+  }, [engine, isSpinning, spin, reset, view]);
 
   useEffect(() => {
     if (!isSpinning && lastResult !== null) {
       const audio = new Audio(jackpotSound);
       audio.play().catch(err => console.error("Error playing sound:", err));
+
+      // Record win for active room
+      if (activeRoomId) {
+        setRooms(prev => {
+          const updated = prev.map(r => r.id === activeRoomId ? { ...r, wins: r.wins + 1 } : r);
+          localStorage.setItem('roleta_rooms', JSON.stringify(updated));
+          return updated;
+        });
+      }
     }
-  }, [isSpinning, lastResult]);
+  }, [isSpinning, lastResult, activeRoomId]);
 
   return (
     <div className="flex flex-col items-center justify-between min-h-screen py-12 px-6 bg-[#0f172a] text-white">
       {/* Header */}
-      <header className="text-center mb-8">
-        <h1 className="text-5xl font-black mb-2 tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600">
-          ROLETA DA IEAD BELVEDERE
+      <header className="relative w-full max-w-4xl flex flex-col items-center gap-2 mb-8">
+        <div className="absolute top-0 right-0 group">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="p-3 bg-slate-800/40 hover:bg-slate-700/60 rounded-xl border border-slate-700/50 text-slate-400 hover:text-cyan-400 transition-all duration-300 backdrop-blur-sm"
+            title="Configurar Sala"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div>
+
+        <h1 className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600">
+          IEAD BELVEDERE
         </h1>
-        <p className="text-slate-400 font-medium"></p>
+
+        {activeRoom && view === 'roulette' && (
+          <div className="flex items-center gap-2 px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-full animate-in fade-in slide-in-from-top-2 duration-500">
+            <span className="text-[10px] font-black text-cyan-500/60 uppercase tracking-[0.2em]">Sala Diária</span>
+            <span className="text-sm font-bold text-cyan-400 tracking-tight">{activeRoom.name}</span>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center gap-12 w-full max-w-2xl">
+      <main className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl">
 
-        {!engine ? (
-          <div className="animate-in fade-in zoom-in duration-700">
-            <RangeSelector onInitialize={(min, max, uniqueMode) => initEngine({ min, max, uniqueMode })} />
-            <p className="mt-6 text-slate-500 text-center text-sm">
-              Defina um range para iniciar sua sessão
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-12 w-full animate-in fade-in slide-in-from-top-4 duration-500">
-
-            {/* Range Info */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="flex items-center gap-4 bg-slate-800/30 px-6 py-2 rounded-full border border-slate-700/50">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Range Ativo</span>
-                <span className="text-cyan-400 font-black">{engine.getConfig().min} — {engine.getConfig().max}</span>
-                <button
-                  onClick={() => initEngine(engine.getConfig())}
-                  className="ml-2 text-slate-500 hover:text-white transition-colors"
-                  title="Resetar Sessão"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        {view === 'home' && (
+          <div className="flex flex-col md:flex-row gap-8 w-full max-w-2xl animate-in fade-in zoom-in duration-500">
+            <button
+              onClick={() => setView('ranking')}
+              className="flex-1 group relative p-8 bg-slate-800/40 border border-slate-700/50 rounded-3xl hover:border-amber-500/50 transition-all duration-500 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative flex flex-col items-center gap-6">
+                <div className="w-20 h-20 rounded-2xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30 group-hover:scale-110 transition-transform">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                   </svg>
-                </button>
+                </div>
+                <div className="text-center">
+                  <h2 className="text-2xl font-black text-white mb-2 italic tracking-widest">RANKING</h2>
+                  <p className="text-slate-500 text-sm font-medium uppercase tracking-[0.2em]">Ver Resultados</p>
+                </div>
               </div>
+            </button>
 
-              {engine.getConfig().uniqueMode && (
-                <div className="flex gap-2">
-                  <div className="text-[10px] font-bold text-cyan-500/80 uppercase tracking-[0.2em] bg-cyan-500/10 px-3 py-1 rounded-md border border-cyan-500/20">
-                    Modo: Sem repetição
-                  </div>
-                  <div className="text-[10px] font-bold text-amber-500/80 uppercase tracking-[0.2em] bg-amber-500/10 px-3 py-1 rounded-md border border-amber-500/20">
-                    Restantes: {remainingCount}
-                  </div>
+            <button
+              onClick={() => setView('roulette')}
+              className="flex-1 group relative p-8 bg-slate-800/40 border border-slate-700/50 rounded-3xl hover:border-cyan-500/50 transition-all duration-500 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative flex flex-col items-center gap-6">
+                <div className="w-20 h-20 rounded-2xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 group-hover:rotate-45 transition-transform">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
-              )}
-            </div>
-
-            <RouletteWheel isSpinning={isSpinning} result={lastResult} config={engine.getConfig()} />
-
-            <div className="flex flex-col items-center gap-4">
-              <Button
-                onClick={spin}
-                disabled={isSpinning}
-                glow
-                className="w-48 py-4 text-xl"
-              >
-                {isSpinning ? 'GIRANDO...' : 'GIRAR'}
-              </Button>
-              <p className="text-slate-600 text-xs uppercase tracking-[0.2em] font-bold">Pressione <span className="text-slate-400">ENTER</span> para girar</p>
-            </div>
-
-            {lastResult !== null && !isSpinning && (
-              <div className="flex flex-col items-center animate-in zoom-in-75 duration-300">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-[0.3em] mb-2">Vencedor</span>
-                <div className="text-8xl font-black text-white drop-shadow-[0_0_15px_rgba(34,211,238,0.8)] decoration-cyan-500 decoration-8">
-                  {lastResult}
+                <div className="text-center">
+                  <h2 className="text-2xl font-black text-white mb-2 italic tracking-widest">ROLETA</h2>
+                  <p className="text-slate-500 text-sm font-medium uppercase tracking-[0.2em]">Sortear Agora</p>
                 </div>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {view === 'ranking' && (
+          <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500 px-4">
+            <button
+              onClick={() => setView('home')}
+              className="self-start mb-8 flex items-center gap-2 text-slate-500 hover:text-white transition-colors uppercase text-xs font-black tracking-widest"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+              </svg>
+              Voltar Menu
+            </button>
+            <div className="flex flex-col xl:flex-row items-start justify-center gap-12 w-full">
+              <PodiumRanking rooms={rooms} category="offering" title="Top Ofertas" />
+              <PodiumRanking rooms={rooms} category="attendance" title="Top Presença" />
+            </div>
+          </div>
+        )}
+
+        {view === 'roulette' && (
+          <div className="w-full flex flex-col items-center">
+            <button
+              onClick={() => setView('home')}
+              disabled={isSpinning}
+              className="self-start mb-8 flex items-center gap-2 text-slate-500 hover:text-white transition-colors uppercase text-xs font-black tracking-widest disabled:opacity-30"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+              </svg>
+              Voltar Menu
+            </button>
+
+            {!engine ? (
+              <div className="animate-in fade-in zoom-in duration-700 w-full max-w-md mx-auto">
+                <RangeSelector onInitialize={(min, max, uniqueMode) => initEngine({ min, max, uniqueMode })} />
+                <p className="mt-6 text-slate-500 text-center text-sm font-medium uppercase tracking-widest opacity-50">
+                  Configuração Inicial Necessária
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-12 w-full animate-in fade-in slide-in-from-top-4 duration-500">
+                {/* Range Info */}
+                <div className="flex flex-col items-center gap-4">
+                  <div className="flex items-center gap-4 bg-slate-800/30 px-6 py-2 rounded-full border border-slate-700/50 backdrop-blur-sm">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Range</span>
+                    <span className="text-cyan-400 font-black">{engine.getConfig().min} — {engine.getConfig().max}</span>
+                    <button
+                      onClick={() => initEngine(engine.getConfig())}
+                      className="ml-2 text-slate-500 hover:text-white transition-colors"
+                      title="Reiniciar Sorteios"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {engine.getConfig().uniqueMode && (
+                    <div className="flex gap-2">
+                      <div className="text-[10px] font-bold text-cyan-500/80 uppercase tracking-widest bg-cyan-500/10 px-3 py-1 rounded-md border border-cyan-500/20">
+                        Modo: Sem repetição
+                      </div>
+                      <div className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-md border border-amber-500/20">
+                        Restantes: {remainingCount}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <RouletteWheel isSpinning={isSpinning} result={lastResult} config={engine.getConfig()} />
+
+                <div className="flex flex-col items-center gap-4">
+                  <Button
+                    onClick={spin}
+                    disabled={isSpinning}
+                    glow
+                    className="w-56 py-5 text-2xl"
+                  >
+                    {isSpinning ? 'GIRANDO...' : 'GIRAR AGORA'}
+                  </Button>
+                  <p className="text-slate-600 text-[10px] uppercase tracking-[0.3em] font-black">Pressione <span className="text-slate-400">ENTER</span> para girar</p>
+                </div>
+
+                {lastResult !== null && !isSpinning && (
+                  <div className="flex flex-col items-center animate-in zoom-in-75 duration-500">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-3">Vencedor Sorteado</span>
+                    <div className="text-9xl font-black text-white drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]">
+                      {lastResult}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -140,6 +276,16 @@ const RoulettePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Room Management Modal */}
+      <RoomManagementModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        rooms={rooms}
+        activeRoomId={activeRoomId}
+        onUpdateRooms={handleUpdateRooms}
+        onSelectRoom={handleSelectRoom}
+      />
     </div>
   );
 };
