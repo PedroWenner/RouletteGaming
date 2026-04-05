@@ -34,20 +34,20 @@ const RouletteWheel: React.FC<RouletteWheelProps> = ({ isSpinning, result, confi
   }, [result, isSpinning]);
 
   return (
-    <div className="relative w-64 h-32 bg-slate-900 border-4 border-slate-700 rounded-2xl overflow-hidden shadow-[0_0_50px_-12px_rgba(34,211,238,0.3)]">
+    <div className="relative w-72 h-36 glass-panel rounded-3xl overflow-hidden shadow-2xl transition-all duration-500">
       {/* Center Indicator */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-full bg-cyan-500 z-10 shadow-[0_0_10px_rgba(34,211,238,1)]" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-full bg-[var(--accent-primary)] z-10 shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
       
       <div 
         ref={scrollRef}
         className={`flex items-center transition-transform duration-[3000ms] ease-in-out h-full
           ${isSpinning ? 'translate-x-[-80%]' : 'translate-x-0'}`}
-        style={{ width: `${displayNumbers.length * 80}px` }}
+        style={{ width: `${displayNumbers.length * 90}px` }}
       >
         {displayNumbers.map((num, i) => (
           <div 
             key={i} 
-            className="w-20 h-full flex items-center justify-center text-4xl font-black text-slate-100 shrink-0"
+            className="w-[90px] h-full flex items-center justify-center text-5xl font-black text-[var(--app-text)] shrink-0 opacity-40 select-none"
           >
             {num}
           </div>
@@ -55,7 +55,7 @@ const RouletteWheel: React.FC<RouletteWheelProps> = ({ isSpinning, result, confi
       </div>
 
       {/* Decorative overlays */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-slate-900 via-transparent to-slate-900 opacity-60" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[var(--app-bg)] via-transparent to-[var(--app-bg)] opacity-80" />
     </div>
   );
 };

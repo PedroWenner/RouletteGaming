@@ -31,7 +31,7 @@ const PodiumRanking: React.FC<PodiumRankingProps> = ({ rooms, category, title })
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-lg mb-12">
-      <h3 className="text-xl font-black italic tracking-widest text-cyan-400 uppercase">{title}</h3>
+      <h3 className="text-xl font-black italic tracking-widest text-[var(--accent-primary)] uppercase">{title}</h3>
 
       {top3.length > 0 ? (
         <div className="flex items-end justify-center gap-4 w-full px-4">
@@ -41,22 +41,25 @@ const PodiumRanking: React.FC<PodiumRankingProps> = ({ rooms, category, title })
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getMedalColor(room.index)} flex items-center justify-center border-2 border-white/20 shadow-lg`}>
                   <span className="text-white font-black text-xl italic">{room.index + 1}º</span>
                 </div>
-                <span className="text-center font-bold text-sm tracking-tight line-clamp-2 max-w-[80px]">
+                <span className="text-center font-bold text-sm tracking-tight line-clamp-2 max-w-[80px] text-[var(--app-text)]">
                   {room.name}
                 </span>
-                <span className="text-[10px] font-black text-slate-500 uppercase">
+                <span className="text-[10px] font-black text-[var(--app-text-dim)] uppercase">
                    {room[category]} {category === 'offering' ? 'Ofertas' : category === 'attendance' ? 'Presenças' : 'Vitórias'}
                 </span>
               </div>
               
-              <div className={`w-full ${getPodiumHeight(room.index)} rounded-t-2xl bg-gradient-to-b from-slate-800/80 to-slate-900/40 border-x border-t border-slate-700/50 relative overflow-hidden group`}>
-                <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className={`w-full ${getPodiumHeight(room.index)} rounded-t-2xl glass-panel relative overflow-hidden group transition-all duration-500 hover:scale-105`}>
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--accent-primary)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[var(--app-text-dim)]/20 font-black text-4xl italic select-none">
+                  {room.index + 1}
+                </div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-slate-600 italic text-sm">Nenhum dado disponível ainda.</p>
+        <p className="text-[var(--app-text-dim)] italic text-sm opacity-50">Nenhum dado disponível ainda.</p>
       )}
     </div>
   );
